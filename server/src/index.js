@@ -4,7 +4,6 @@ import admin from 'firebase-admin'
 import { v2 as cloudinary } from 'cloudinary'
 import express from 'express'
 dotenv.config()
-console.log(process.env.FIREBASE_PROJECT_ID, process.env.FIREBASE_CLIENT_EMAIL, process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),);
 
 const serviceAccount = {
     projectId: process.env.FIREBASE_PROJECT_ID,
