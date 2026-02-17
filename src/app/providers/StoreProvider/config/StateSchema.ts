@@ -11,7 +11,7 @@ export interface StateSchema {
 
 export interface userApi {
     ensureUserExists(user: User): Promise<void>;
-    getUserByUid(uid: string): Promise<User | undefined>
+    getUserByUid(uid: string): Promise<User | null>
 }
 
 export interface ThunkExtraArg {

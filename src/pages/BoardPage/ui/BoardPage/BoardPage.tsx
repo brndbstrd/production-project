@@ -1,15 +1,14 @@
 import { classNames } from 'shared/lib/classNames/classNames';
 import cls from './BoardPage.module.scss';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useSnapshotQuery } from 'shared/lib/hooks/useSnapshotQuery/useSnapshotQuery';
-import { where } from 'firebase/firestore';
 import { RoutePath } from 'shared/config/route/routeConfig';
-import { Board as BoardType } from 'entities/Board/model/types/types';
-import { Board } from 'widgets/Board/ui/Board/Board';
-import { Column } from 'entities/Column/model/types/types';
-import { Task } from 'entities/Task/model/types/types';
 import { Page } from 'shared/ui/Page/Page';
-
+import { where } from 'firebase/firestore';
+import { Board } from 'widgets/Board/ui/Board/Board';
+import { useFirestoreDoc } from 'shared/lib/hooks/useFirestoreDoc';
+import { PageLoader } from 'widgets/PageLoader/PageLoader';
+import { useFirestoreQuery } from 'shared/lib/hooks/useFirestoreQuery';
+import { Column } from 'entities/Column';
 interface BoardPageProps {
     className?: string;
 }
@@ -22,24 +21,15 @@ const BoardPage = ({ className }: BoardPageProps) => {
         return null;
     }
 
-    const { data: board } = useSnapshotQuery<BoardType, 'document'>({
-        ref: 'document',
+
+    const { data: board } = useFirestoreDoc({
         collectionName: 'boards',
         queryKey: ['board', boardId],
         id: boardId
     })
-    const { data: columns } = useSnapshotQuery<Column, 'query'>({
-        ref: 'query',
+    const { data: columns } = useFirestoreQuery({
         collectionName: 'columns',
         queryKey: ['columns', boardId],
-        id: boardId,
-        constraints: [...[where('boardId', '==', boardId)]]
-    })
-    const { data: tasks } = useSnapshotQuery<Task, 'query'>({
-        ref: 'query',
-        collectionName: 'tasks',
-        queryKey: ['tasks', boardId],
-        id: boardId,
         constraints: [...[where('boardId', '==', boardId)]]
     })
     // const columns = [
@@ -56,26 +46,18 @@ const BoardPage = ({ className }: BoardPageProps) => {
     //         title: 'DDDDASDSAASD'
     //     }
     // ] as Column[]
-    // const tasks = [
-    //     {
-    //         boardId: 'OIVInqdggqKA9NROBpiM',
-    //         columnId: '3SYPLMnV4dr28nALU6IT',
-    //         createdAt: '21321',
-    //         description: 'sdadssda',
-    //         order: 2,
-    //         title: '12323321123',
-    //         completed: true
-    //     },
-    //     {
-    //         boardId: 'OIVInqdggqKA9NROBpiM',
-    //         columnId: '3SYPLMnV4dr28nALU6IT',
-    //         createdAt: '21321',
-    //         description: 'sdadsdddsda',
-    //         order: 3,
-    //         title: '12323321123',
-    //         completed: true
-    //     }
-    // ] as Task[]
+    const { data: tasks } = useFirestoreQuery({
+        collectionName: 'tasks',
+        queryKey: ['tasks', boardId],
+        constraints: [...[where('boardId', '==', boardId)]]
+    })
+    if (!board || !columns || !tasks) {
+        console.log(!!board, !!columns, !!tasks);
+
+        return <PageLoader />
+    }
+
+
     return (
         <Page className={classNames(cls.BoardPage, {}, [className])}>
             <Board id={boardId} board={board} columns={columns} tasks={tasks} />

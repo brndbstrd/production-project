@@ -3,6 +3,7 @@ import { app } from "./app";
 import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, connectAuthEmulator, signInWithEmailAndPassword, setPersistence, signOut, sendPasswordResetEmail, onAuthStateChanged, browserLocalPersistence, UserCredential, signInWithRedirect, getRedirectResult, Auth, AuthError, User, sendSignInLinkToEmail, ActionCodeSettings, signInWithPopup, sendEmailVerification, applyActionCode, checkActionCode, ActionCodeInfo } from 'firebase/auth'
 export const auth = getAuth(app);
 const user = auth.currentUser;
+user
 console.log(user);
 const AUTH_ACTIONS = {
     EMAIL_VERIFY: "verifyEmail",
@@ -16,44 +17,21 @@ type AuthAction = typeof AUTH_ACTIONS[keyof typeof AUTH_ACTIONS];
 // }
 
 
-// export function initAuthListener(dispatch: AppDispatch, actions: AuthActions) {
-//     onAuthStateChanged(auth, (user) => {
-//         if (user) {
-//             const formattedUser = {
-//                 uid: user.uid || '',
-//                 displayName: user.displayName,
-//                 email: user.email,
-//                 photoURL: user.photoURL || '',
-//                 phoneNumber: user.phoneNumber || '',
-//                 emailVerified: user.emailVerified || false,
-//                 providerId: user.providerId || ''
-//             } as User
-
-//             dispatch(actions.setUser(formattedUser))
-//             console.log(auth.currentUser);
-
-//         }
-//         else {
-//             dispatch(actions.clearUser())
-//         }
-//     });
-// }
 export function initAuthListener(options: {
     onSignedIn: (u: User) => void
     onSignedOut: () => void
     onVerified?: (u: User) => void
 }) {
-    return onAuthStateChanged(auth, (user) => {
+    return onAuthStateChanged(auth, (user: User | null) => {
         if (user) {
-
             const formattedUser = {
-                uid: user.uid || '',
-                displayName: user.displayName,
+                uid: user.uid,
+                displayName: user.displayName || null,
                 email: user.email,
-                photoURL: user.photoURL || '',
-                phoneNumber: user.phoneNumber || '',
+                photoURL: user.photoURL || null,
+                phoneNumber: user.phoneNumber || null,
                 emailVerified: user.emailVerified || false,
-                providerId: user.providerId || ''
+                providerId: user.providerId || null
             } as User
             options.onSignedIn(formattedUser)
             if (user.emailVerified) {

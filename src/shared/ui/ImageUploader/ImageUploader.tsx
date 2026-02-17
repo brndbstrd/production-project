@@ -1,7 +1,7 @@
 import { classNames } from 'shared/lib/classNames/classNames';
 import cls from './ImageUploader.module.scss';
 import React, { useEffect, useState } from 'react';
-import { ImageMeta } from 'shared/api/cloudinary';
+import { ImageMeta } from 'entities/Task';
 
 interface ImageUploaderProps {
     className?: string;

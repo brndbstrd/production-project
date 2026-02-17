@@ -1,14 +1,8 @@
+import { ImageMeta } from "entities/Task"
 
 
 const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dglfbebre'
-export interface ImageMeta {
-    url: string,
-    public_id: string
-    width: number
-    height: number
-    format: string
-    delete_token: string
-}
+
 export const uploadImage = async (file: File): Promise<ImageMeta> => {
 
     const formData = new FormData()
@@ -22,7 +16,6 @@ export const uploadImage = async (file: File): Promise<ImageMeta> => {
     })
 
     const data: ImageMeta = await res.json()
-    console.log(data);
 
     const imageMeta: ImageMeta = {
         url: data.url,
@@ -30,9 +23,7 @@ export const uploadImage = async (file: File): Promise<ImageMeta> => {
         width: data.width,
         height: data.height,
         format: data.format,
-        delete_token: data.delete_token
     };
-    console.log(imageMeta);
 
     return imageMeta
 }

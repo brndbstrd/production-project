@@ -1,6 +1,5 @@
-import { Task } from "entities/Task/model/types/types"
+import { ImageMeta } from "entities/Task"
 import { arrayUnion } from "firebase/firestore"
-import { ImageMeta } from "shared/api/cloudinary"
 import { updateDocById } from "shared/config/firebase/firestore"
 
 

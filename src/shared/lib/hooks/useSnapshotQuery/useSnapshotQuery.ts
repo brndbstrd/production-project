@@ -1,90 +1,104 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DocumentData, DocumentSnapshot, onSnapshot, Query, QueryConstraint, QuerySnapshot } from "firebase/firestore";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { firestoreRef, q } from "shared/config/firebase/firestore";
-interface useSnapshotQueryProps<T> {
-    ref: 'document' | 'query'
-    queryKey: string[],
-    collectionName: string,
-    constraints?: QueryConstraint[]
-    id?: string
-}
-type DocumentResult<T> = (T & { id: string })
-type QueryResult<T> = (T & { id: string })[]
-type SnapshotResult<T, R extends 'document' | 'query'> =
-    R extends 'document' ? DocumentResult<T> :
-    R extends 'query' ? QueryResult<T> :
-    never
+// import { useQuery, useQueryClient } from "@tanstack/react-query";
+// import { DocumentData, DocumentSnapshot, onSnapshot, Query, QueryConstraint, QuerySnapshot, where } from "firebase/firestore";
+// import { useEffect, useMemo, useRef, useState } from "react";
+// import { FirestoreDoc, FirestoreSchema } from "shared/api/firestoreSchemas";
+// import { firestoreRef, listenById, listenByQuery, q, typedCollection } from "shared/config/firebase/firestore";
+
+// type useSnapshotQueryProps<C extends keyof FirestoreSchema> =
+//     | { ref: 'document', id: string, queryKey: string[], collectionName: C, }
+//     | { ref: 'query', constraints: QueryConstraint[], queryKey: string[], collectionName: C, }
+
+// type SnapshotData<C extends keyof FirestoreSchema> =
+//     | FirestoreDoc<FirestoreSchema[C]>
+//     | FirestoreDoc<FirestoreSchema[C]>[]
+
+// // type DocumentResult<C extends keyof FirestoreSchema> = FirestoreSchema[C] & {id: string}
+// // type QueryResult<C extends keyof FirestoreSchema> =  FirestoreSchema[C] & {id: string}[]
+
+// export const useSnapshotQuery = <C extends keyof FirestoreSchema>(props: useSnapshotQueryProps<C>) => {
+//     const { queryKey, ref, collectionName } = props
+//     let constraints: QueryConstraint[] | undefined
+//     let id: string | undefined
+//     if (ref === 'query') {
+//         constraints = props.constraints
+//     }
+//     if (ref === 'document') {
+//         id = props.id
+//     }
+//     const queryClient = useQueryClient()
+//     const [isLoading, setIsLoading] = useState<boolean>(false)
+//     const resolveRef = useRef<(data: DocumentResult<C> | QueryResult<C>) => void>(null);
+
+//     const isEnabled =
+//         (
+//             (ref === 'query' && !!constraints?.length) ||
+//             (ref === 'document' && !!id)
+//         )
+
+//     const dataPromise = useMemo(() => {
+//         return new Promise<DocumentResult<C> | QueryResult<C>>((resolve) => {
+//             resolveRef.current = resolve
+//         })
+//     }, [queryKey])
+//     const handleDocumentSnapshot = (snapshot: DocumentSnapshot<FirestoreSchema[C]>) => {
+//         let data: DocumentResult<C>
 
 
-export const useSnapshotQuery = <T extends DocumentData, R extends 'document' | 'query'>(props: useSnapshotQueryProps<T>) => {
-    const { queryKey, ref, collectionName, constraints, id } = props
-    const queryClient = useQueryClient()
-    const [isLoading, setIsLoading] = useState<boolean>(false)
-    type Result = SnapshotResult<T, R>
-    const resolveRef = useRef<
-        (data: Result) => void
-    >(null);
+//         if (snapshot instanceof DocumentSnapshot) {
+//             const docSnap = snapshot.data()
+//             if (!docSnap) throw new Error('no document')
+//             data = {
+//                 id: snapshot.id,
+//                 ...docSnap
+//             }
+//             if (resolveRef.current) {
+//                 resolveRef.current(data)
+//             }
+//             queryClient.setQueryData(queryKey, data)
+//         }
+
+//     }
+//     const handleQuerySnapshot = (snapshot: QuerySnapshot<FirestoreSchema[C]>) => {
+//         let data: QueryResult<C>
+//         if ('docs' in snapshot) {
+//             data = snapshot.docs.map((doc) => (
+//                 {
+//                     id: doc.id,
+//                     ...doc.data()
+//                 }))
+//             setIsLoading(false)
+//             if (resolveRef.current) {
+//                 resolveRef.current(data)
+//             }
+//             queryClient.setQueryData(queryKey, data)
+//         }
+//     }
 
 
-    const isEnabled =
-        (
-            (ref === 'query' && !!constraints?.length) ||
-            (ref === 'document' && !!id)
-        )
-    const dataPromise = useMemo(() => {
-        return new Promise<Result>((resolve) => {
-            resolveRef.current = resolve
-        })
-    }, [queryKey])
-    const handleSnapshot = (snapshot: QuerySnapshot<T & { id: string }> | DocumentSnapshot<T & { id: string }>) => {
-        let data: Result
-        if (snapshot instanceof QuerySnapshot) {
-            data = snapshot.docs.map((doc) => ({
-                ...doc.data(),
-                id: doc.id
+//     useEffect(() => {
+//         if (!isEnabled) return
+//         if (ref == 'query' && constraints && isLoading === false) {
 
-            })) as SnapshotResult<T, R>
-            setIsLoading(false)
-        } else {
-            data = {
-                id: snapshot.id,
-                ...snapshot.data() as SnapshotResult<T, R>,
-            }
-        }
-        if (resolveRef.current) {
-            resolveRef.current(data)
-        }
-        queryClient.setQueryData(queryKey, data)
+//             listenByQuery(collectionName, constraints, (snapsot) => {
+//                 handleQuerySnapshot(snapsot)
+//             })
+//             setIsLoading(true)
 
+//         } else {
+//             if (ref == 'document' && id) {
 
-    }
-    useEffect(() => {
-        if (!isEnabled) return
-        if (ref == 'query' && constraints && isLoading === false) {
-            const queryRef = q(collectionName, ...constraints)
-            const unsubscribe = onSnapshot(queryRef, (snapshot) => {
-                handleSnapshot(snapshot as QuerySnapshot<T & { id: string }>)
-            })
-            setIsLoading(true)
+//                 listenById(collectionName, id, (snapsot) => {
+//                     handleDocumentSnapshot(snapsot)
+//                 })
+//             }
+//         }
 
-            return unsubscribe;
-        } else {
-            if (ref == 'document' && id) {
-                const ref = firestoreRef(collectionName, id)
-                const unsubscribe = onSnapshot(ref, (snapshot) => {
-                    handleSnapshot(snapshot as DocumentSnapshot<T & { id: string }>)
-                })
-                return unsubscribe
-            }
-        }
+//     }, [ref, isEnabled, id, collectionName, constraints]);
+//     return useQuery({
+//         queryKey,
+//         queryFn: () => dataPromise,
+//         enabled: isEnabled,
 
-    }, [ref, isEnabled, id, collectionName, constraints]);
+//     })
+// }
 
-    return useQuery({
-        queryKey,
-        queryFn: () => dataPromise,
-        enabled: isEnabled,
-
-    })
-}

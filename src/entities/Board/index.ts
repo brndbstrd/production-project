@@ -1,7 +1,12 @@
 import { getBoardData } from "./model/selectors/selectors"
-import { Board, BoardSchema } from "./model/types/types"
+import { Board, BoardSchema, mapBoardDocToBoard, mapBoardToBoardDoc, UpdateBoard } from "./model/types/types"
+
+
 export {
     type Board,
     type BoardSchema,
-    getBoardData
+    type UpdateBoard,
+    getBoardData,
+    mapBoardDocToBoard,
+    mapBoardToBoardDoc
 }

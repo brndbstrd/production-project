@@ -16,7 +16,6 @@ export const queryClient = new QueryClient({
 const PERSIST_KEY = 'react-query'
 export const persister = {
     persistClient: async (client: PersistedClient) => {
-        console.log(client);
 
         await localforage.setItem(PERSIST_KEY, client)
     },
@@ -27,6 +26,7 @@ export const persister = {
         await localforage.removeItem(PERSIST_KEY)
     },
 } satisfies Persister
+
 
 
 

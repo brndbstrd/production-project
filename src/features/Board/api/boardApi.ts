@@ -1,30 +1,32 @@
-import { Dispatch } from "@reduxjs/toolkit"
-import { Board } from "entities/Board"
-import { boardActions } from "entities/Board/model/types/slice/boardSlice"
-import { Column } from "entities/Column/model/types/types"
-import { Task } from "entities/Task/model/types/types"
+import { Board, mapBoardDocToBoard, UpdateBoard } from "entities/Board"
+import { mapColumnDocToColumn } from "entities/Column"
+import { mapTaskDocToTask } from "entities/Task"
 import { where } from "firebase/firestore"
-import { getDocsByQuery, listen, listenByQuery, q, updateDocById } from "shared/config/firebase/firestore"
-import { useAppDispatch } from "shared/lib/hooks/useAppDispatch/useAppDispatch"
-import { persister } from "shared/lib/queryClientPersister/queryClientPersister"
+import { getDocById, getDocsByQuery, listenById, q, updateDocById } from "shared/config/firebase/firestore"
 
 
-export const getAllBoards = (uid: string) => {
+
+export const getAllBoards = async (uid: string): Promise<Board[]> => {
   const query = q('boards', ...[where('ownerId', '==', uid)])
-  return getDocsByQuery<Board>(query)
+  const docs = await getDocsByQuery(query)
+  return docs.map(({ id, data }) => mapBoardDocToBoard(id, data))
 }
-export const getBoard = (boardId: string, dispatch: Dispatch) => {
-  listen<Board>('boards', boardId,)
+export const getBoard = (boardId: string) => {
+  getDocById('boards', boardId,)
 }
 
-export const getColumns = (boardId: string) => {
-  const query = q('boards', ...[where('boardId', '==', boardId)])
-  return getDocsByQuery<Column>(query)
+export const getColumns = async (boardId: string) => {
+  const query = q('columns', ...[where('boardId', '==', boardId)])
+  const docs = await getDocsByQuery(query)
+  return docs.map(({ id, data }) => mapColumnDocToColumn(id, data))
 }
-export const getTasks = (boardId: string) => {
+export const getTasks = async (boardId: string) => {
   const query = q('tasks', ...[where('boardId', '==', boardId)])
-  return getDocsByQuery<Task>(query)
+  const docs = await getDocsByQuery(query)
+  return docs.map(({ id, data }) => mapTaskDocToTask(id, data))
 }
-export const updateBoard = (id: string, data: Partial<Board>) => {
+
+export const updateBoard = (id: string, data: UpdateBoard) => {
   return updateDocById('boards', id, data)
 }
+

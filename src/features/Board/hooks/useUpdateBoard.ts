@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { updateBoard } from "../api/boardApi"
-import { Board } from "entities/Board"
+import { Board, UpdateBoard } from "entities/Board"
 type UpdateBoardVariables = {
     id: string;
-    data: Partial<Board>;
+    data: UpdateBoard;
 };
 
 export const useUpdateBoard = () => {
